@@ -10,6 +10,9 @@ obj/
 bin/
 **/bin/
 
+# Игнорирование файла connectionString.txt во всех папках
+**/connectionString.txt
+
 # Игнорирование файлов пользовательских настроек
 *.suo
 *.user
