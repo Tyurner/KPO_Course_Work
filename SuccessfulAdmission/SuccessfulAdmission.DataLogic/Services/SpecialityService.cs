@@ -24,9 +24,9 @@ public class SpecialityService
                         {
                             Id = reader.GetInt32(0),
                             Name = reader.GetString(1),
-                            Description = reader.GetString(2),
+                            Description = reader.IsDBNull(2) ? null : reader.GetString(2),
                             CountOfPlaces = reader.GetInt32(3),
-                            FacultyId = reader.GetInt32(4)
+                            FacultyId = reader.IsDBNull(4) ? null : reader.GetInt32(4)
                         };
                         specialities.Add(speciality);
                     }
@@ -54,9 +54,9 @@ public class SpecialityService
                         {
                             Id = reader.GetInt32(0),
                             Name = reader.GetString(1),
-                            Description = reader.GetString(2),
+                            Description = reader.IsDBNull(2) ? null : reader.GetString(2),
                             CountOfPlaces = reader.GetInt32(3),
-                            FacultyId = reader.GetInt32(4)
+                            FacultyId = reader.IsDBNull(4) ? null : reader.GetInt32(4)
                         };
                         specialities.Add(speciality);
                     }
@@ -84,9 +84,9 @@ public class SpecialityService
                         {
                             Id = reader.GetInt32(0),
                             Name = reader.GetString(1),
-                            Description = reader.GetString(2),
+                            Description = reader.IsDBNull(2) ? null : reader.GetString(2),
                             CountOfPlaces = reader.GetInt32(3),
-                            FacultyId = reader.GetInt32(4)
+                            FacultyId = reader.IsDBNull(4) ? null : reader.GetInt32(4)
                         };
                     }
                 }

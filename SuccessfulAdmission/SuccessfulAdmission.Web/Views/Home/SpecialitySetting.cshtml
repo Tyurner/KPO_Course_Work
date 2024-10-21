@@ -30,7 +30,7 @@
     </div>
     <div class="row m-3">
         <div class="col-4">Факультет:</div>
-        <div class="col-8">
+        <div class="col-4">
             <select id="facultyId" name="facultyId" class="form-control" asp-items="@(new SelectList(@ViewBag.Faculties,"Id", "Name", Model.FacultyId))"></select>
         </div>
     </div>

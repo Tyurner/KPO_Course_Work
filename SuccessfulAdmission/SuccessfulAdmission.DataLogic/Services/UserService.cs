@@ -9,7 +9,7 @@ public class UserService
 
     public List<UserModel> GetAllUsers()
     {
-        string query = "SELECT Id, Login, Password, Email, IsAdmin, IsTwoFactor, Key, Qr FROM [dbo].[User]";
+        string query = "SELECT Id, Login, Password, Email, IsAdmin, IsTwoFactor, [Key], Qr FROM [dbo].[User]";
         List<UserModel> users = new List<UserModel>();
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
@@ -28,8 +28,8 @@ public class UserService
                             Email = reader.GetString(3),
                             IsAdmin = reader.GetBoolean(4),
                             IsTwoFactor = reader.GetBoolean(5),
-                            Key = reader.GetString(6),
-                            Qr = reader.GetString(7)
+                            Key = reader.IsDBNull(6) ? null : reader.GetString(6),
+                            Qr = reader.IsDBNull(7) ? null : reader.GetString(7) 
                         };
                         users.Add(user);
                     }
@@ -41,7 +41,7 @@ public class UserService
     
     public UserModel GetUserById(int id)
     {
-        string query = "SELECT Id, Login, Password, Email, IsAdmin, IsTwoFactor, Key, Qr FROM [dbo].[User] WHERE Id = @Id";
+        string query = "SELECT Id, Login, Password, Email, IsAdmin, IsTwoFactor, [Key], Qr FROM [dbo].[User] WHERE Id = @Id";
         UserModel user = new UserModel();
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
@@ -61,8 +61,8 @@ public class UserService
                             Email = reader.GetString(3),
                             IsAdmin = reader.GetBoolean(4),
                             IsTwoFactor = reader.GetBoolean(5),
-                            Key = reader.GetString(6),
-                            Qr = reader.GetString(7)
+                            Key = reader.IsDBNull(6) ? null : reader.GetString(6),
+                            Qr = reader.IsDBNull(7) ? null : reader.GetString(7) 
                         };
                     }
                 }
@@ -73,7 +73,7 @@ public class UserService
     
     public void AddUser(string login, string password, string email, bool isAdmin, bool isTwoFactor, string? key, string? qr)
     {
-        string query = "INSERT INTO [dbo].[User] (Login, Password, Email, IsAdmin, IsTwoFactor, Key, Qr) VALUES (@Login, @Password, @Email, @IsAdmin, @IsTwoFactor, @Key, @Qr)";
+        string query = "INSERT INTO [dbo].[User] (Login, Password, Email, IsAdmin, IsTwoFactor, [Key], Qr) VALUES (@Login, @Password, @Email, @IsAdmin, @IsTwoFactor, @Key, @Qr)";
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
             connection.Open();
@@ -93,7 +93,7 @@ public class UserService
     
     public void UpdateUser(int id, string login, string password, string email, bool isAdmin, bool isTwoFactor, string? key, string? qr)
     {
-        string query = "UPDATE [dbo].[User] SET Login = @Login, Password = @Password, Email = @Email, IsAdmin = @IsAdmin, IsTwoFactor = @IsTwoFactor, Key = @Key, Qr = @Qr WHERE Id = @Id";
+        string query = "UPDATE [dbo].[User] SET Login = @Login, Password = @Password, Email = @Email, IsAdmin = @IsAdmin, IsTwoFactor = @IsTwoFactor, [Key] = @Key, Qr = @Qr WHERE Id = @Id";
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
             connection.Open();

@@ -3,14 +3,14 @@ using SuccessfulAdmission.DataLogic.Models;
 
 namespace SuccessfulAdmission.DataLogic.Services;
 
-public class FacultyService
+public class SubjectService
 {
     private string _connectionString = new ConnectionStringReader().GetConnectionString();
 
-    public List<FacultyModel> GetAllFaculties()
+    public List<SubjectModel> GetAllSubjects()
     {
-        string query = "SELECT Id, Name, Description FROM [dbo].[Faculty]";
-        List<FacultyModel> faculties = new List<FacultyModel>();
+        string query = "SELECT Id, Name, MaxPoints FROM [dbo].[Subject]";
+        List<SubjectModel> subjects = new List<SubjectModel>();
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
             connection.Open();
@@ -20,24 +20,24 @@ public class FacultyService
                 {
                     while (reader.Read())
                     {
-                        FacultyModel faculty = new FacultyModel
+                        SubjectModel subject = new SubjectModel
                         {
                             Id = reader.GetInt32(0),
                             Name = reader.GetString(1),
-                            Description = reader.IsDBNull(2) ? null : reader.GetString(2)
+                            MaxPoints = reader.GetInt32(2)
                         };
-                        faculties.Add(faculty);
+                        subjects.Add(subject);
                     }
                 }
             }
         }
-        return faculties;
+        return subjects;
     }
     
-    public FacultyModel GetFacultyById(int id)
+    public SubjectModel GetSubjectById(int id)
     {
-        string query = "SELECT Id, Name, Description FROM [dbo].[Faculty] WHERE Id = @Id";
-        FacultyModel faculty = new FacultyModel();
+        string query = "SELECT Id, Name, MaxPoints FROM [dbo].[Subject] WHERE Id = @Id";
+        SubjectModel subject = new SubjectModel();
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
             connection.Open();
@@ -48,37 +48,37 @@ public class FacultyService
                 {
                     if (reader.Read())
                     {
-                        faculty = new FacultyModel
+                        subject = new SubjectModel
                         {
                             Id = reader.GetInt32(0),
                             Name = reader.GetString(1),
-                            Description = reader.IsDBNull(2) ? null : reader.GetString(2)
+                            MaxPoints = reader.GetInt32(2)
                         };
                     }
                 }
             }
         }
-        return faculty;
+        return subject;
     }
     
-    public void AddFaculty(string name, string? description)
+    public void AddSubject(string name, int maxPoints)
     {
-        string query = "INSERT INTO [dbo].[Faculty] (Name, Description) VALUES (@Name, @Description)";
+        string query = "INSERT INTO [dbo].[Subject] (Name, MaxPoints) VALUES (@Name, @MaxPoints)";
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
             connection.Open();
             using (SqlCommand command = new SqlCommand(query, connection))
             {
                 command.Parameters.AddWithValue("@Name", name);
-                command.Parameters.AddWithValue("@Description", description);
+                command.Parameters.AddWithValue("@MaxPoints", maxPoints);
                 command.ExecuteNonQuery();
             }
         }
     }
     
-    public void UpdateFaculty(int id, string name, string? description)
+    public void UpdateSubject(int id, string name, int maxPoints)
     {
-        string query = "UPDATE [dbo].[Faculty] SET Name = @Name, Description = @Description WHERE Id = @Id";
+        string query = "UPDATE [dbo].[Subject] SET Name = @Name, MaxPoints = @MaxPoints WHERE Id = @Id";
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
             connection.Open();
@@ -86,15 +86,15 @@ public class FacultyService
             {
                 command.Parameters.AddWithValue("@Id", id);
                 command.Parameters.AddWithValue("@Name", name);
-                command.Parameters.AddWithValue("@Description", description);
+                command.Parameters.AddWithValue("@MaxPoints", maxPoints);
                 command.ExecuteNonQuery();
             }
         }
     }
     
-    public void DeleteFaculty(int id)
+    public void DeleteSubject(int id)
     {
-        string query = "DELETE FROM [dbo].[Faculty] WHERE Id = @Id";
+        string query = "DELETE FROM [dbo].[Subject] WHERE Id = @Id";
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
             connection.Open();

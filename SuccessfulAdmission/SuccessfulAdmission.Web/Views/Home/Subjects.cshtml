@@ -1,0 +1,42 @@
+﻿@model List<SuccessfulAdmission.DataLogic.Models.SubjectModel>
+
+<div class="text-center">
+    <h1 class="display-4">Предметы</h1>
+</div>
+
+<div class="text-center">
+    <p>
+        <a asp-action="SubjectCreate">Добавить предмет</a>
+    </p>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>
+                Название предмета
+            </th>
+            <th>
+                Максимум баллов
+            </th>
+            <th>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.MaxPoints)
+                </td>
+                <td>
+                    <a href="@Url.Action("SubjectSetting", "Home", new { id = item.Id })"
+                       class="btn btn-primary btn-lg">Редактировать</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

@@ -3,14 +3,14 @@ using SuccessfulAdmission.DataLogic.Models;
 
 namespace SuccessfulAdmission.DataLogic.Services;
 
-public class FacultyService
+public class ApplicantService
 {
     private string _connectionString = new ConnectionStringReader().GetConnectionString();
 
-    public List<FacultyModel> GetAllFaculties()
+    public List<ApplicantModel> GetAllApplicants()
     {
-        string query = "SELECT Id, Name, Description FROM [dbo].[Faculty]";
-        List<FacultyModel> faculties = new List<FacultyModel>();
+        string query = "SELECT Id, Name FROM [dbo].[Applicant]";
+        List<ApplicantModel> applicants = new List<ApplicantModel>();
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
             connection.Open();
@@ -20,24 +20,23 @@ public class FacultyService
                 {
                     while (reader.Read())
                     {
-                        FacultyModel faculty = new FacultyModel
+                        ApplicantModel applicant = new ApplicantModel
                         {
                             Id = reader.GetInt32(0),
-                            Name = reader.GetString(1),
-                            Description = reader.IsDBNull(2) ? null : reader.GetString(2)
+                            Name = reader.GetString(1)
                         };
-                        faculties.Add(faculty);
+                        applicants.Add(applicant);
                     }
                 }
             }
         }
-        return faculties;
+        return applicants;
     }
     
-    public FacultyModel GetFacultyById(int id)
+    public ApplicantModel GetApplicantById(int id)
     {
-        string query = "SELECT Id, Name, Description FROM [dbo].[Faculty] WHERE Id = @Id";
-        FacultyModel faculty = new FacultyModel();
+        string query = "SELECT Id, Name FROM [dbo].[Applicant] WHERE Id = @Id";
+        ApplicantModel applicant = new ApplicantModel();
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
             connection.Open();
@@ -48,37 +47,35 @@ public class FacultyService
                 {
                     if (reader.Read())
                     {
-                        faculty = new FacultyModel
+                        applicant = new ApplicantModel
                         {
                             Id = reader.GetInt32(0),
-                            Name = reader.GetString(1),
-                            Description = reader.IsDBNull(2) ? null : reader.GetString(2)
+                            Name = reader.GetString(1)
                         };
                     }
                 }
             }
         }
-        return faculty;
+        return applicant;
     }
     
-    public void AddFaculty(string name, string? description)
+    public void AddApplicant(string name)
     {
-        string query = "INSERT INTO [dbo].[Faculty] (Name, Description) VALUES (@Name, @Description)";
+        string query = "INSERT INTO [dbo].[Applicant] (Name) VALUES (@Name)";
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
             connection.Open();
             using (SqlCommand command = new SqlCommand(query, connection))
             {
                 command.Parameters.AddWithValue("@Name", name);
-                command.Parameters.AddWithValue("@Description", description);
                 command.ExecuteNonQuery();
             }
         }
     }
     
-    public void UpdateFaculty(int id, string name, string? description)
+    public void UpdateApplicant(int id, string name)
     {
-        string query = "UPDATE [dbo].[Faculty] SET Name = @Name, Description = @Description WHERE Id = @Id";
+        string query = "UPDATE [dbo].[Applicant] SET Name = @Name WHERE Id = @Id";
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
             connection.Open();
@@ -86,15 +83,14 @@ public class FacultyService
             {
                 command.Parameters.AddWithValue("@Id", id);
                 command.Parameters.AddWithValue("@Name", name);
-                command.Parameters.AddWithValue("@Description", description);
                 command.ExecuteNonQuery();
             }
         }
     }
     
-    public void DeleteFaculty(int id)
+    public void DeleteApplicant(int id)
     {
-        string query = "DELETE FROM [dbo].[Faculty] WHERE Id = @Id";
+        string query = "DELETE FROM [dbo].[Applicant] WHERE Id = @Id";
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
             connection.Open();
