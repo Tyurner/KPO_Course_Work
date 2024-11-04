@@ -1,0 +1,23 @@
+﻿<div class="text-center">
+    <h2 class="display-4">Создание факультета</h2>
+</div>
+@if (!string.IsNullOrEmpty(TempData["ErrorMessage"] as string))
+{
+    <script>
+        alert('@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(TempData["ErrorMessage"].ToString()))');
+    </script>
+}
+<form method="post" action="@Url.Action("FacultyCreate", "Home")">
+    <div class="row m-3">
+        <div class="col-4">Название:</div>
+        <div class="col-8"><input type="text" name="name" id="name" /></div>
+    </div>
+    <div class="row m-3">
+        <div class="col-4">Описание:</div>
+        <div class="col-8"><textarea cols="50" id="desc" name="desc" rows="5"></textarea>:</div>
+    </div>
+    <div class="row m-3">
+        <div class="col-8"></div>
+        <div class="col-4"><input type="submit" value="Создать" class="btn btn-primary" /></div>
+    </div>
+</form>

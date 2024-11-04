@@ -20,3 +20,39 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  .btn-danger{
+    background-color: #dc3545;
+  }
+  .btn-danger:hover {
+    background-color: #c82333;
+  }
+}
+
+.table th, .table td {
+  border: 1px solid;
+  padding: 8px;
+}
+
+.table th {
+  cursor: pointer;
+}
+
+.table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.table tr:hover {
+  background-color: #ddd;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}

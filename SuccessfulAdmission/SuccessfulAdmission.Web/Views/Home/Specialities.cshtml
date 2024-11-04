@@ -1,0 +1,54 @@
+﻿@model List<SuccessfulAdmission.DataLogic.Models.SpecialityModel>
+
+<div class="text-center">
+    <h1 class="display-4">Специальности</h1>
+</div>
+
+<div class="text-center">
+    <p>
+        <a asp-action="SpecialityCreate">Добавить специальность</a>
+    </p>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>
+                Название специальности
+            </th>
+            <th>
+                Количество мест
+            </th>
+            <th>
+            </th>
+            <th>
+            </th>
+            <th>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CountOfPlaces)
+                </td>
+                <td>
+                    <a href="@Url.Action("SpecialityApplicants", "Home", new { id = item.Id })"
+                       class="btn btn-warning btn-lg">Списки</a>
+                </td>
+                <td>
+                    <a href="@Url.Action("SpecialitySubjects", "Home", new { id = item.Id })"
+                       class="btn btn-success btn-lg">Предметы</a>
+                </td>
+                <td>
+                    <a href="@Url.Action("SpecialitySetting", "Home", new { id = item.Id })"
+                       class="btn btn-primary btn-lg">Редактировать</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

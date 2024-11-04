@@ -1,0 +1,45 @@
+﻿@model SuccessfulAdmission.DataLogic.Models.SpecialityModel
+
+<div class="text-center">
+    <h3>Предметы по специальности "@Model.Name"</h3>
+</div>
+<div class="row m-3">
+    <label class="col-3">Добавить предмет: </label>
+    <form action="@Url.Action("AddSpecialitySubject", "Home")" method="post" class="col-6 d-flex">
+        <select id="subjectId" name="subjectId" class="form-select me-2" asp-items="@(new SelectList(@ViewBag.AllSubjects,"Id", "Name"))"></select>
+        <input type="hidden" id="specialityId" name="specialityId" value="@Model.Id" />
+        <input type="submit" class="btn btn-primary" value="Добавить" />
+    </form>
+</div>
+<div class="text-center">
+    <table class="table">
+        <thead>
+        <tr>
+            <th>
+                Название предмета
+            </th>
+            <th>
+                Максимум баллов
+            </th>
+            <th>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in ViewBag.Subjects)
+        {
+        <tr>
+            <td>
+                @item.Name
+            </td>
+            <td>
+                @item.MaxPoints
+            </td>
+            <td>
+                <input type="button" class="col-md-4 ms-auto btn btn-danger" value="Удалить" onclick="location.href='@Url.Action("DeleteSpecialitySubject","Home", new {specialityId=Model.Id, subjectId=@item.Id})'" />
+            </td>  
+        </tr>
+        }
+        </tbody>
+    </table>
+</div>

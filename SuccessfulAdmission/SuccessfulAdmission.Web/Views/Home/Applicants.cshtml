@@ -1,0 +1,42 @@
+﻿@model List<SuccessfulAdmission.DataLogic.Models.ApplicantModel>
+
+<div class="text-center">
+    <h1 class="display-4">Абитуриенты</h1>
+</div>
+
+<div class="text-center">
+    <p>
+        <a asp-action="ApplicantCreate">Добавить абитуриента</a>
+    </p>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>
+                ФИО
+            </th>
+            <th>
+            </th>
+            <th>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    <a href="@Url.Action("ApplicantSubjects", "Home", new { id = item.Id })"
+                       class="btn btn-success btn-lg">Предметы</a>
+                </td>
+                <td>
+                    <a href="@Url.Action("ApplicantSetting", "Home", new { id = item.Id })"
+                       class="btn btn-primary btn-lg">Редактировать</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

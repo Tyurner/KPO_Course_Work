@@ -1,0 +1,37 @@
+﻿@model SuccessfulAdmission.DataLogic.Models.SpecialityModel
+
+<div class="text-center">
+    <h2 class="display-4">@Model.Name</h2>
+</div>
+@if (!string.IsNullOrEmpty(TempData["ErrorMessage"] as string))
+{
+    <script>
+        alert('@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(TempData["ErrorMessage"].ToString()))');
+    </script>
+}
+<form method="post" action="@Url.Action("UpdateSpeciality", "Home", new{id=Model.Id,name="#name",desc="#desc", countStr="#countStr", facultyId="#facultyId"})">
+    <div class="row m-3">
+        <div class="col-8">
+            <input type="submit" value="Обновить" class="col-md-4 btn btn-primary" />
+            <input type="button" class="col-md-4 ms-auto btn btn-danger" value="Удалить" onclick="location.href='@Url.Action("DeleteSpeciality","Home", new {id=Model.Id })'" />
+        </div>
+    </div>
+    <div class="row m-3">
+        <div class="col-4">Название:</div>
+        <div class="col-8"><input type="text" name="name" id="name" value="@Model.Name" /></div>
+    </div>
+    <div class="row m-3">
+        <div class="col-4">Описание:</div>
+        <div class="col-8"><textarea cols="50" id="desc" name="desc" rows="5">@Model.Description</textarea>:</div>
+    </div>
+    <div class="row m-3">
+        <div class="col-4">Количество мест:</div>
+        <div class="col-8"><input type="text" name="countStr" id="countStr" value="@Model.CountOfPlaces" /></div>
+    </div>
+    <div class="row m-3">
+        <div class="col-4">Факультет:</div>
+        <div class="col-4">
+            <select id="facultyId" name="facultyId" class="form-control" asp-items="@(new SelectList(@ViewBag.Faculties,"Id", "Name", Model.FacultyId))"></select>
+        </div>
+    </div>
+</form>

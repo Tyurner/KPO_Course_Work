@@ -1,0 +1,52 @@
+﻿@model SuccessfulAdmission.DataLogic.Models.ApplicantModel
+
+<div class="text-center">
+    <h3>Предметы и баллы абитуриента "@Model.Name"</h3>
+</div>
+@if (!string.IsNullOrEmpty(TempData["ErrorMessage"] as string))
+{
+<script>
+    alert('@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(TempData["ErrorMessage"].ToString()))');
+</script>
+}
+<div class="row m-3">
+    <label class="col-3">Добавить предмет: </label>
+    <form action="@Url.Action("AddApplicantSubject", "Home")" method="post" class="col-6 d-flex">
+        <select id="subjectId" name="subjectId" class="form-select me-2" asp-items="@(new SelectList(@ViewBag.AllSubjects,"Id", "Name"))" onchange="updateMaxPoints()"></select>
+        <input type="number" id="points" name="points" class="form-control me-2" placeholder="Баллов" min="0" required />
+        <input type="hidden" id="applicantId" name="applicantId" value="@Model.Id" />
+        <input type="submit" class="btn btn-primary" value="Добавить" />
+    </form>
+</div>
+<div class="text-center">
+    <table class="table">
+        <thead>
+        <tr>
+            <th>
+                Название предмета
+            </th>
+            <th>
+                Количество баллов
+            </th>
+            <th>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model.Results)
+        {
+            <tr>
+                <td>
+                    @item.Key.Name
+                </td>
+                <td>
+                    @item.Value
+                </td>
+                <td>
+                    <input type="button" class="col-md-4 ms-auto btn btn-danger" value="Удалить" onclick="location.href='@Url.Action("DeleteApplicantSubject","Home", new {applicantId=Model.Id, subjectId=@item.Key.Id})'" />
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

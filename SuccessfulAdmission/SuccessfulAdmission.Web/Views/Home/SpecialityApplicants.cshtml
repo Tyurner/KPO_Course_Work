@@ -1,0 +1,96 @@
+﻿@using SuccessfulAdmission.DataLogic.Models
+@model SuccessfulAdmission.DataLogic.Models.SpecialityModel
+@{
+    var applicants = ViewBag.Applicants as List<ApplicantModel>;
+    var subjects = ViewBag.Subjects as List<SubjectModel>;
+}
+
+<div class="text-center">
+    <h3>Список абитуриентов на специальность "@Model.Name"</h3>
+    <p>Количество мест @Model.CountOfPlaces</p>
+</div>
+<div class="row m-3">
+    <label class="col-3">Добавить абитуриента: </label>
+    <form action="@Url.Action("AddSpecialityApplicant", "Home")" method="post" class="col-6 d-flex">
+        <select id="applicantId" name="applicantId" class="form-select me-2" asp-items="@(new SelectList(@ViewBag.AllApplicants,"Id", "Name"))"></select>
+        <input type="hidden" id="specialityId" name="specialityId" value="@Model.Id" />
+        <input type="submit" class="btn btn-primary" value="Добавить" />
+    </form>
+</div>
+<div class="text-center">
+    <table id="applicantsTable" class="table">
+        <thead>
+        <tr>
+            <th class="text-info" onclick="sortTable(0)">
+                ФИО абитуриента
+            </th>
+            @foreach (var subject in subjects)
+            {
+                <th>
+                    @subject.Name
+                </th>
+            }
+            <th class="text-info" onclick="sortTable(@(subjects.Count + 1))">
+                Сумма баллов
+            </th>
+            <th>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var applicant in applicants)
+        {
+            <tr>
+                <td>
+                    @applicant.Name
+                </td>
+                @{ int totalScore = 0; }
+                @foreach (var subject in subjects)
+                {
+                    int score = applicant.Results.TryGetValue(subject, out var value) ? value : 0;
+                    <td>
+                        @score
+                    </td>
+                    totalScore += score;
+                }
+                <td>@totalScore</td>
+                <td>
+                    <input type="button" class="btn btn-danger" value="Удалить" onclick="location.href='@Url.Action("DeleteSpecialityApplicant","Home", new {specialityId=Model.Id, applicantId=@applicant.Id})'" />
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<script>
+function sortTable(columnIndex) {
+    const table = document.getElementById("applicantsTable");
+    const rows = Array.from(table.rows).slice(1); // Извлекаем строки, пропуская заголовок
+    const isAscending = table.dataset.sortOrder === "asc";
+
+    // Сортируем строки
+    rows.sort((a, b) => {
+        const aText = a.cells[columnIndex].innerText;
+        const bText = b.cells[columnIndex].innerText;
+
+        // Преобразуем текст в число, если это сумма баллов
+        const aValue = columnIndex === (rows[0].cells.length - 2) ? parseInt(aText) : aText;
+        const bValue = columnIndex === (rows[0].cells.length - 2) ? parseInt(bText) : bText;
+
+        return isAscending ? (aValue > bValue ? 1 : -1) : (aValue < bValue ? 1 : -1);
+    });
+
+    // Убираем текущие строки из таблицы
+    rows.forEach(row => table.appendChild(row)); // Перемещаем строки, чтобы обновить порядок
+
+    // Переключаем порядок сортировки
+    table.dataset.sortOrder = isAscending ? "desc" : "asc";
+
+    // Принудительная перерисовка стилей
+    rows.forEach(row => row.classList.remove('sorted')); // Если есть класс для сортировки, убираем его
+    rows.forEach((row, index) => {
+        row.classList.add(index % 2 === 0 ? 'sorted-even' : 'sorted-odd'); // Применяем классы для четных и нечетных строк
+    });
+}
+</script>

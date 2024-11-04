@@ -1,0 +1,39 @@
+﻿@model List<SuccessfulAdmission.DataLogic.Models.UserModel>
+
+<div class="text-center">
+    <h1 class="display-4">Пользователи</h1>
+</div>
+
+<div class="text-center">
+    <table class="table">
+        <thead>
+        <tr>
+            <th>
+                Логин
+            </th>
+            <th>
+                Почта
+            </th>
+            <th>
+                Роль
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Login)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Email)
+                </td>
+                <td>
+                    @(item.IsAdmin ? "Админ" : "Пользователь")
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

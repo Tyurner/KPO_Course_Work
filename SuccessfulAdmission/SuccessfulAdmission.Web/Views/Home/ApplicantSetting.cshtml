@@ -1,0 +1,23 @@
+﻿@model SuccessfulAdmission.DataLogic.Models.ApplicantModel
+
+<div class="text-center">
+    <h2 class="display-4">@Model.Name</h2>
+</div>
+@if (!string.IsNullOrEmpty(TempData["ErrorMessage"] as string))
+{
+    <script>
+        alert('@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(TempData["ErrorMessage"].ToString()))');
+    </script>
+}
+<form method="post" action="@Url.Action("UpdateApplicant", "Home", new{id=Model.Id,name="#name"})">
+    <div class="row m-3">
+        <div class="col-8">
+            <input type="submit" value="Обновить" class="col-md-4 btn btn-primary" />
+            <input type="button" class="col-md-4 ms-auto btn btn-danger" value="Удалить" onclick="location.href='@Url.Action("DeleteApplicant","Home", new {id=Model.Id })'" />
+        </div>
+    </div>
+    <div class="row m-3">
+        <div class="col-4">ФИО:</div>
+        <div class="col-8"><input type="text" name="name" id="name" value="@Model.Name" /></div>
+    </div>
+</form>
