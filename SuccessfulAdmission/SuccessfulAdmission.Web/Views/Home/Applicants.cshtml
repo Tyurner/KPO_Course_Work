@@ -16,6 +16,8 @@
             </th>
             <th>
             </th>
+            <th>
+            </th>
         </tr>
         </thead>
         <tbody>
@@ -24,6 +26,10 @@
             <tr>
                 <td>
                     @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    <a href="@Url.Action("ApplicantSubjects", "Home", new { id = item.Id })"
+                       class="btn btn-success btn-lg">Предметы</a>
                 </td>
                 <td>
                     <a href="@Url.Action("ApplicantSetting", "Home", new { id = item.Id })"

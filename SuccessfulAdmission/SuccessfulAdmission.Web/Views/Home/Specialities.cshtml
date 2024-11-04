@@ -19,6 +19,10 @@
             </th>
             <th>
             </th>
+            <th>
+            </th>
+            <th>
+            </th>
         </tr>
         </thead>
         <tbody>
@@ -30,6 +34,14 @@
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.CountOfPlaces)
+                </td>
+                <td>
+                    <a href="@Url.Action("SpecialityApplicants", "Home", new { id = item.Id })"
+                       class="btn btn-warning btn-lg">Списки</a>
+                </td>
+                <td>
+                    <a href="@Url.Action("SpecialitySubjects", "Home", new { id = item.Id })"
+                       class="btn btn-success btn-lg">Предметы</a>
                 </td>
                 <td>
                     <a href="@Url.Action("SpecialitySetting", "Home", new { id = item.Id })"

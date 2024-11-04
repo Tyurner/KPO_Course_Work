@@ -34,6 +34,36 @@ public class SubjectService
         return subjects;
     }
     
+    public List<SubjectModel> GetSubjectsBySpecialityId(int specialityId)
+    {
+        string query = "SELECT Id, Name, MaxPoints FROM [dbo].[Subject]" + 
+                       "JOIN [dbo].[Speciality_Subject] ON [dbo].[Subject].Id = [dbo].[Speciality_Subject].SubjectId " +
+                       "WHERE [dbo].[Speciality_Subject].SpecialityId = @SpecialityId";
+        List<SubjectModel> subjects = new List<SubjectModel>();
+        using (SqlConnection connection = new SqlConnection(_connectionString))
+        {
+            connection.Open();
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@SpecialityId", specialityId);
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        SubjectModel subject = new SubjectModel
+                        {
+                            Id = reader.GetInt32(0),
+                            Name = reader.GetString(1),
+                            MaxPoints = reader.GetInt32(2)
+                        };
+                        subjects.Add(subject);
+                    }
+                }
+            }
+        }
+        return subjects;
+    }
+    
     public SubjectModel GetSubjectById(int id)
     {
         string query = "SELECT Id, Name, MaxPoints FROM [dbo].[Subject] WHERE Id = @Id";

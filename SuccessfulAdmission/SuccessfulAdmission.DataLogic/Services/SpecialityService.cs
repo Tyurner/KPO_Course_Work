@@ -143,4 +143,74 @@ public class SpecialityService
             }
         }
     }
+    
+    public void AddSpecialitySubject(int specialityId, int subjectId)
+    {
+        string query = "IF NOT EXISTS (SELECT 1 FROM [dbo].[Speciality_Subject] " +
+                       "WHERE SpecialityId = @SpecialityId AND SubjectId = @SubjectId) " +
+                       "BEGIN " +
+                       "INSERT INTO [dbo].[Speciality_Subject] (SpecialityId, SubjectId) " +
+                       "VALUES (@SpecialityId, @SubjectId); " +
+                       "END";
+        using (SqlConnection connection = new SqlConnection(_connectionString))
+        {
+            connection.Open();
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@SpecialityId", specialityId);
+                command.Parameters.AddWithValue("@SubjectId", subjectId);
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+    
+    public void DeleteSpecialitySubject(int specialityId, int subjectId)
+    {
+        string query = "DELETE FROM [dbo].[Speciality_Subject] WHERE SpecialityId=@SpecialityId AND SubjectId=@SubjectId";
+        using (SqlConnection connection = new SqlConnection(_connectionString))
+        {
+            connection.Open();
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@SpecialityId", specialityId);
+                command.Parameters.AddWithValue("@SubjectId", subjectId);
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+    
+    public void AddSpecialityApplicant(int specialityId, int applicantId)
+    {
+        string query = "IF NOT EXISTS (SELECT 1 FROM [dbo].[Applicant_Speciality] " +
+                       "WHERE SpecialityId = @SpecialityId AND ApplicantId = @ApplicantId) " +
+                       "BEGIN " +
+                       "INSERT INTO [dbo].[Applicant_Speciality] (SpecialityId, ApplicantId) " +
+                       "VALUES (@SpecialityId, @ApplicantId); " +
+                       "END";
+        using (SqlConnection connection = new SqlConnection(_connectionString))
+        {
+            connection.Open();
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@SpecialityId", specialityId);
+                command.Parameters.AddWithValue("@ApplicantId", applicantId);
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+    
+    public void DeleteSpecialityApplicant(int specialityId, int applicantId)
+    {
+        string query = "DELETE FROM [dbo].[Applicant_Speciality] WHERE SpecialityId=@SpecialityId AND ApplicantId=@ApplicantId";
+        using (SqlConnection connection = new SqlConnection(_connectionString))
+        {
+            connection.Open();
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@SpecialityId", specialityId);
+                command.Parameters.AddWithValue("@ApplicantId", applicantId);
+                command.ExecuteNonQuery();
+            }
+        }
+    }
 }

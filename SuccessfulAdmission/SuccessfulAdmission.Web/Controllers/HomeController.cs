@@ -124,6 +124,49 @@ public class HomeController : Controller
         _specialityService.UpdateSpeciality(id, name, desc ?? string.Empty, count, facultyId);
         return RedirectToAction("Specialities");
     }
+    
+    [HttpGet]
+    public IActionResult SpecialitySubjects(int id)
+    {
+        ViewBag.AllSubjects = _subjectService.GetAllSubjects();
+        ViewBag.Subjects = _subjectService.GetSubjectsBySpecialityId(id);
+        return View(_specialityService.GetSpecialityById(id));
+    }
+
+    [HttpPost]
+    public IActionResult AddSpecialitySubject(int specialityId, int subjectId)
+    {
+        _specialityService.AddSpecialitySubject(specialityId, subjectId);
+        return RedirectToAction("SpecialitySubjects", new { id = specialityId });
+    }
+
+    public void DeleteSpecialitySubject(int specialityId, int subjectId)
+    {
+        _specialityService.DeleteSpecialitySubject(specialityId, subjectId);
+        Response.Redirect("/Home/SpecialitySubjects/" + specialityId);
+    }
+    
+    [HttpGet]
+    public IActionResult SpecialityApplicants(int id)
+    {
+        ViewBag.AllApplicants = _applicantService.GetAllApplicants();
+        ViewBag.Applicants = _applicantService.GetApplicantsBySpecialityId(id);
+        ViewBag.Subjects = _subjectService.GetSubjectsBySpecialityId(id);
+        return View(_specialityService.GetSpecialityById(id));
+    }
+    
+    [HttpPost]
+    public IActionResult AddSpecialityApplicant(int specialityId, int applicantId)
+    {
+        _specialityService.AddSpecialityApplicant(specialityId, applicantId);
+        return RedirectToAction("SpecialityApplicants", new { id = specialityId });
+    }
+    
+    public void DeleteSpecialityApplicant(int specialityId, int applicantId)
+    {
+        _specialityService.DeleteSpecialityApplicant(specialityId, applicantId);
+        Response.Redirect("/Home/SpecialityApplicants/" + specialityId);
+    }
 
     public void DeleteSpeciality(int id)
     {
@@ -170,6 +213,32 @@ public class HomeController : Controller
         }
         _applicantService.UpdateApplicant(id, name);
         return RedirectToAction("Applicants");
+    }
+    
+    [HttpGet]
+    public IActionResult ApplicantSubjects(int id)
+    {
+        ViewBag.AllSubjects = _subjectService.GetAllSubjects();
+        return View(_applicantService.GetApplicantById(id));
+    }
+    
+    [HttpPost]
+    public IActionResult AddApplicantSubject(int applicantId, int subjectId, int points)
+    {
+        var maxPoints = _subjectService.GetSubjectById(subjectId).MaxPoints;
+        if (points > maxPoints)
+        {
+            TempData["ErrorMessage"] = "Кол-во баллов не может быть больше максимального " + maxPoints;
+            return RedirectToAction("ApplicantSubjects",  new { id = applicantId });
+        }
+        _applicantService.AddApplicantSubject(applicantId, subjectId, points);
+        return RedirectToAction("ApplicantSubjects", new { id = applicantId });
+    }
+    
+    public void DeleteApplicantSubject(int applicantId, int subjectId)
+    {
+        _applicantService.DeleteApplicantSubject(applicantId, subjectId);
+        Response.Redirect("/Home/ApplicantSubjects/" + applicantId);
     }
 
     public void DeleteApplicant(int id)
