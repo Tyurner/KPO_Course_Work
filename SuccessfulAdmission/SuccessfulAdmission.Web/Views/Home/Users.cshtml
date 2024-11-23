@@ -3,7 +3,12 @@
 <div class="text-center">
     <h1 class="display-4">Пользователи</h1>
 </div>
-
+@if (!string.IsNullOrEmpty(TempData["ErrorMessage"] as string))
+{
+<script>
+    alert('@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(TempData["ErrorMessage"].ToString()))');
+</script>
+}
 <div class="text-center">
     <table class="table">
         <thead>
@@ -16,6 +21,8 @@
             </th>
             <th>
                 Роль
+            </th>
+            <th>
             </th>
         </tr>
         </thead>
@@ -31,6 +38,12 @@
                 </td>
                 <td>
                     @(item.IsAdmin ? "Админ" : "Пользователь")
+                </td>
+                <td>
+                    @if (!item.IsAdmin)
+                    {
+                        <input type="button" class="btn btn-success" value="Повысить" onclick="location.href='@Url.Action("PromoteUser", "Home", new { id = item.Id })'" />
+                    }
                 </td>
             </tr>
         }

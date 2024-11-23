@@ -3,6 +3,12 @@
 <div class="text-center">
     <h3>Предметы по специальности "@Model.Name"</h3>
 </div>
+@if (!string.IsNullOrEmpty(TempData["ErrorMessage"] as string))
+{
+<script>
+    alert('@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(TempData["ErrorMessage"].ToString()))');
+</script>
+}
 <div class="row m-3">
     <label class="col-3">Добавить предмет: </label>
     <form action="@Url.Action("AddSpecialitySubject", "Home")" method="post" class="col-6 d-flex">
