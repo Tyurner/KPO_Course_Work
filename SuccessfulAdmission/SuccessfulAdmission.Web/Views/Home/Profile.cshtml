@@ -1,0 +1,28 @@
+﻿<div class="text-center">
+    <h2 class="display-4">Профиль</h2>
+</div>
+@if (!string.IsNullOrEmpty(TempData["ErrorMessage"] as string))
+{
+<script>
+    alert('@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(TempData["ErrorMessage"].ToString()))');
+</script>
+}
+<form method="post" action="@Url.Action("UpdateUser", "Home", new{id=Model.Id,login="#login",password="#password",email="#email"})">
+    <div class="row m-3">
+        <div class="col-4">Почта:</div>
+        <div class="col-8"><input type="text" name="email" id="email" value="@Model.Email" /></div>
+    </div>
+    <div class="row m-3">
+        <div class="col-4">Логин:</div>
+        <div class="col-8"><input type="text" name="login" id="login" value="@Model.Login" /></div>
+    </div>
+    <div class="row m-3">
+        <div class="col-4">Пароль:</div>
+        <div class="col-8"><input type="password" name="password" id="password" value="@Model.Password" /></div>
+    </div>
+    <div class="d-flex flex-column m-3 col-md-4 col-xs-12">
+        <input type="button" class="mb-2 btn btn-secondary" value="Выйти" onclick="location.href='@Url.Action("Exit", "Home")'"/>
+        <input type="submit" value="Обновить данные" class="mb-2 btn btn-primary"/>
+        <input type="button" class="btn btn-danger" value="Удалить аккаунт" onclick="location.href='@Url.Action("DeleteUser", "Home", new { id = Model.Id })'"/>
+    </div>
+</form>

@@ -1,7 +1,12 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
-
+@if (!string.IsNullOrEmpty(TempData["ErrorMessage"] as string))
+{
+<script>
+    alert('@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(TempData["ErrorMessage"].ToString()))');
+</script>
+}
 <div class="text-center">
     <h1 class="display-4">Добро пожаловать</h1>
     <h1 class="display-4">в "Успешное поступление"!</h1>

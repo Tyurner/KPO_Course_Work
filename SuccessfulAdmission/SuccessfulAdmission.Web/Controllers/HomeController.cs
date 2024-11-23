@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using SuccessfulAdmission.DataLogic.Services;
 using SuccessfulAdmission.Web.Models;
@@ -21,23 +22,206 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
+        if (ApiClient.Client == null)
+        {
+            return Redirect("~/Home/Enter");
+        }
         return View();
+    }
+    
+    [HttpGet]
+    public IActionResult Enter()
+    {
+        return View();
+    }
+    
+    [HttpPost]
+    public IActionResult Enter(string login, string password)
+    {
+        if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
+        {
+            TempData["ErrorMessage"] = "Введите логин и пароль";
+            return View();
+        }
+        ApiClient.Client = _userService.GetUserByLoginPassword(login, password);
+        if (ApiClient.Client == null)
+        {
+            TempData["ErrorMessage"] = "Неверный логин/пароль";
+            return View();
+        }
+        return RedirectToAction("Index");
+    }
+    
+    public void Exit()
+    {
+        ApiClient.Client = null;
+        Response.Redirect("/Home/Enter");
+    }
+    
+    [HttpGet]
+    public IActionResult Register()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public IActionResult Register(string email, string login, string password)
+    {
+        if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(email))
+        {
+            TempData["ErrorMessage"] = "Введите почту, логин, пароль";
+            return View();
+        }
+        if (_userService.GetUserByLogin(login) != null)
+        {
+            TempData["ErrorMessage"] = "Пользователь с таким логином уже существует";
+            return View();
+        }
+        if (_userService.GetUserByEmail(email) != null)
+        {
+            TempData["ErrorMessage"] = "Пользователь с такой почтой уже существует";
+            return View();
+        }
+        string pattern = "[.\\-_a-z0-9]+@([a-z0-9][\\-a-z0-9]+\\.)+[a-z]{2,6}";
+        Match isMatch = Regex.Match(email, pattern, RegexOptions.IgnoreCase);
+        if (!isMatch.Success)
+        {
+            TempData["ErrorMessage"] = "Введите корректную почту";
+            return View();
+        }
+        if (login.Length < 5)
+        {
+            TempData["ErrorMessage"] = "Логин не должен быть короче 5 символов";
+            return View();
+        }
+        if (password.Length < 6)
+        {
+            TempData["ErrorMessage"] = "Пароль не должен быть короче 6 символов";
+            return View();
+        }
+        _userService.AddUser(login, password, email);
+        return RedirectToAction("Enter");
+    }
+    
+    [HttpGet]
+    public IActionResult Profile()
+    {
+        if (ApiClient.Client == null)
+        {
+            return Redirect("~/Home/Enter");
+        }
+        var model = new ApiClient
+        {
+            Id = ApiClient.Client.Id,
+            Email = ApiClient.Client.Email,
+            Login = ApiClient.Client.Login,
+            Password = ApiClient.Client.Password,
+            IsAdmin = ApiClient.Client.IsAdmin,
+            IsTwoFactor = ApiClient.Client.IsTwoFactor,
+            Key = ApiClient.Client.Key ?? string.Empty,
+            Qr = ApiClient.Client.Qr ?? string.Empty
+        };
+
+        return View(model);
+    }
+    
+    [HttpPost]
+    public IActionResult UpdateUser(int id, string login, string password, string email)
+    {
+        if (ApiClient.Client == null)
+        {
+            return RedirectToAction("Enter");
+        }
+        if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(email))
+        {
+            TempData["ErrorMessage"] = "Введите почту, логин, пароль";
+            return RedirectToAction("Profile");
+        }
+        if (_userService.GetUserByLogin(login) != null)
+        {
+            TempData["ErrorMessage"] = "Пользователь с таким логином уже существует";
+            return RedirectToAction("Profile");
+        }
+        if (_userService.GetUserByEmail(email) != null)
+        {
+            TempData["ErrorMessage"] = "Пользователь с такой почтой уже существует";
+            return RedirectToAction("Profile");
+        }
+        string pattern = "[.\\-_a-z0-9]+@([a-z0-9][\\-a-z0-9]+\\.)+[a-z]{2,6}";
+        Match isMatch = Regex.Match(email, pattern, RegexOptions.IgnoreCase);
+        if (!isMatch.Success)
+        {
+            TempData["ErrorMessage"] = "Введите корректную почту";
+            return RedirectToAction("Profile");
+        }
+        if (login.Length < 5)
+        {
+            TempData["ErrorMessage"] = "Логин не должен быть короче 5 символов";
+            return RedirectToAction("Profile");
+        }
+        if (password.Length < 6)
+        {
+            TempData["ErrorMessage"] = "Пароль не должен быть короче 6 символов";
+            return RedirectToAction("Profile");
+        }
+        _userService.UpdateUser(id, login, password, email);
+        ApiClient.Client = _userService.GetUserById(id);
+        var model = new ApiClient
+        {
+            Id = ApiClient.Client.Id,
+            Email = ApiClient.Client.Email,
+            Login = ApiClient.Client.Login,
+            Password = ApiClient.Client.Password,
+            IsAdmin = ApiClient.Client.IsAdmin,
+            IsTwoFactor = ApiClient.Client.IsTwoFactor,
+            Key = ApiClient.Client.Key ?? string.Empty,
+            Qr = ApiClient.Client.Qr ?? string.Empty
+        };
+        return RedirectToAction("Profile", model);
+    }
+    
+    public void DeleteUser(int id)
+    {
+        if (ApiClient.Client == null || id <= 0)
+        {
+            Response.Redirect("/Home/Enter");
+            return;
+        }
+        _userService.DeleteUser(id);
+        Exit();
     }
 
     [HttpGet]
     public IActionResult Faculties()
     {
+        if (ApiClient.Client == null)
+        {
+            return Redirect("~/Home/Enter");
+        }
         return View(_facultyService.GetAllFaculties());
     }
     
     [HttpGet]
     public IActionResult FacultyCreate()
     {
+        if (ApiClient.Client == null)
+        {
+            return Redirect("~/Home/Enter");
+        }
         return View();
     }
     [HttpPost]
     public IActionResult FacultyCreate(string name, string? desc)
     {
+        if (ApiClient.Client == null)
+        {
+            return RedirectToAction("Enter");
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            return RedirectToAction("Faculties");
+        }
         if (string.IsNullOrEmpty(name))
         {
             TempData["ErrorMessage"] = "Введите название";
@@ -50,11 +234,24 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult FacultySetting(int id)
     {
+        if (ApiClient.Client == null)
+        {
+            return Redirect("~/Home/Enter");
+        }
         return View(_facultyService.GetFacultyById(id));
     }
     [HttpPost]
     public IActionResult UpdateFaculty(int id, string name, string? desc)
     {
+        if (ApiClient.Client == null)
+        {
+            return RedirectToAction("Enter");
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            return RedirectToAction("Faculties");
+        }
         if (string.IsNullOrEmpty(name))
         {
             TempData["ErrorMessage"] = "Введите название";
@@ -66,6 +263,17 @@ public class HomeController : Controller
 
     public void DeleteFaculty(int id)
     {
+        if (ApiClient.Client == null)
+        {
+            Response.Redirect("/Home/Enter");
+            return;
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            Response.Redirect("/Home/Faculties");
+            return;
+        }
         _facultyService.DeleteFaculty(id);
         Response.Redirect("/Home/Faculties");
     }
@@ -73,18 +281,35 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult Specialities()
     {
+        if (ApiClient.Client == null)
+        {
+            return Redirect("~/Home/Enter");
+        }
         return View(_specialityService.GetAllSpecialities());
     }
     
     [HttpGet]
     public IActionResult SpecialityCreate()
     {
+        if (ApiClient.Client == null)
+        {
+            return Redirect("~/Home/Enter");
+        }
         ViewBag.Faculties = _facultyService.GetAllFaculties();
         return View();
     }
     [HttpPost]
     public IActionResult SpecialityCreate(string name, string? desc, string countStr, int? facultyId)
     {
+        if (ApiClient.Client == null)
+        {
+            return RedirectToAction("Enter");
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            return RedirectToAction("Specialities");
+        }
         ViewBag.Faculties = _facultyService.GetAllFaculties();
         if (string.IsNullOrEmpty(name))
         {
@@ -105,12 +330,25 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult SpecialitySetting(int id)
     {
+        if (ApiClient.Client == null)
+        {
+            return Redirect("~/Home/Enter");
+        }
         ViewBag.Faculties = _facultyService.GetAllFaculties();
         return View(_specialityService.GetSpecialityById(id));
     }
     [HttpPost]
     public IActionResult UpdateSpeciality(int id, string name, string? desc, string countStr, int? facultyId)
     {
+        if (ApiClient.Client == null)
+        {
+            return RedirectToAction("Enter");
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            return RedirectToAction("Specialities");
+        }
         if (string.IsNullOrEmpty(name))
         {
             TempData["ErrorMessage"] = "Введите название";
@@ -128,6 +366,10 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult SpecialitySubjects(int id)
     {
+        if (ApiClient.Client == null)
+        {
+            return Redirect("~/Home/Enter");
+        }
         ViewBag.AllSubjects = _subjectService.GetAllSubjects();
         ViewBag.Subjects = _subjectService.GetSubjectsBySpecialityId(id);
         return View(_specialityService.GetSpecialityById(id));
@@ -136,12 +378,32 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult AddSpecialitySubject(int specialityId, int subjectId)
     {
+        if (ApiClient.Client == null)
+        {
+            return RedirectToAction("Enter");
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            return RedirectToAction("SpecialitySubjects", new { id = specialityId });
+        }
         _specialityService.AddSpecialitySubject(specialityId, subjectId);
         return RedirectToAction("SpecialitySubjects", new { id = specialityId });
     }
 
     public void DeleteSpecialitySubject(int specialityId, int subjectId)
     {
+        if (ApiClient.Client == null)
+        {
+            Response.Redirect("/Home/Enter");
+            return;
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            Response.Redirect("/Home/SpecialitySubjects/" + specialityId);
+            return;
+        }
         _specialityService.DeleteSpecialitySubject(specialityId, subjectId);
         Response.Redirect("/Home/SpecialitySubjects/" + specialityId);
     }
@@ -149,6 +411,10 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult SpecialityApplicants(int id)
     {
+        if (ApiClient.Client == null)
+        {
+            return Redirect("~/Home/Enter");
+        }
         ViewBag.AllApplicants = _applicantService.GetAllApplicants();
         ViewBag.Applicants = _applicantService.GetApplicantsBySpecialityId(id);
         ViewBag.Subjects = _subjectService.GetSubjectsBySpecialityId(id);
@@ -158,18 +424,49 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult AddSpecialityApplicant(int specialityId, int applicantId)
     {
+        if (ApiClient.Client == null)
+        {
+            return RedirectToAction("Enter");
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            return RedirectToAction("SpecialityApplicants", new { id = specialityId });
+        }
         _specialityService.AddSpecialityApplicant(specialityId, applicantId);
         return RedirectToAction("SpecialityApplicants", new { id = specialityId });
     }
     
     public void DeleteSpecialityApplicant(int specialityId, int applicantId)
     {
+        if (ApiClient.Client == null)
+        {
+            Response.Redirect("/Home/Enter");
+            return;
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            Response.Redirect("/Home/SpecialityApplicants/" + specialityId);
+            return;
+        }
         _specialityService.DeleteSpecialityApplicant(specialityId, applicantId);
         Response.Redirect("/Home/SpecialityApplicants/" + specialityId);
     }
 
     public void DeleteSpeciality(int id)
     {
+        if (ApiClient.Client == null)
+        {
+            Response.Redirect("/Home/Enter");
+            return;
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            Response.Redirect("/Home/Specialities");
+            return;
+        }
         _specialityService.DeleteSpeciality(id);
         Response.Redirect("/Home/Specialities");
     }
@@ -177,17 +474,34 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult Applicants()
     {
+        if (ApiClient.Client == null)
+        {
+            return Redirect("~/Home/Enter");
+        }
         return View(_applicantService.GetAllApplicants());
     }
     
     [HttpGet]
     public IActionResult ApplicantCreate()
     {
+        if (ApiClient.Client == null)
+        {
+            return Redirect("~/Home/Enter");
+        }
         return View();
     }
     [HttpPost]
     public IActionResult ApplicantCreate(string name)
     {
+        if (ApiClient.Client == null)
+        {
+            return RedirectToAction("Enter");
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            return RedirectToAction("Applicants");
+        }
         if (string.IsNullOrEmpty(name))
         {
             TempData["ErrorMessage"] = "Введите имя";
@@ -201,11 +515,24 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult ApplicantSetting(int id)
     {
+        if (ApiClient.Client == null)
+        {
+            return Redirect("~/Home/Enter");
+        }
         return View(_applicantService.GetApplicantById(id));
     }
     [HttpPost]
     public IActionResult UpdateApplicant(int id, string name)
     {
+        if (ApiClient.Client == null)
+        {
+            return RedirectToAction("Enter");
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            return RedirectToAction("Applicants");
+        }
         if (string.IsNullOrEmpty(name))
         {
             TempData["ErrorMessage"] = "Введите имя";
@@ -218,6 +545,10 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult ApplicantSubjects(int id)
     {
+        if (ApiClient.Client == null)
+        {
+            return Redirect("~/Home/Enter");
+        }
         ViewBag.AllSubjects = _subjectService.GetAllSubjects();
         return View(_applicantService.GetApplicantById(id));
     }
@@ -225,6 +556,15 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult AddApplicantSubject(int applicantId, int subjectId, int points)
     {
+        if (ApiClient.Client == null)
+        {
+            return RedirectToAction("Enter");
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            return RedirectToAction("ApplicantSubjects", new { id = applicantId });
+        }
         var maxPoints = _subjectService.GetSubjectById(subjectId).MaxPoints;
         if (points > maxPoints)
         {
@@ -237,30 +577,69 @@ public class HomeController : Controller
     
     public void DeleteApplicantSubject(int applicantId, int subjectId)
     {
+        if (ApiClient.Client == null)
+        {
+            Response.Redirect("/Home/Enter");
+            return;
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            Response.Redirect("/Home/ApplicantSubjects/" + applicantId);
+            return;
+        }
         _applicantService.DeleteApplicantSubject(applicantId, subjectId);
         Response.Redirect("/Home/ApplicantSubjects/" + applicantId);
     }
 
     public void DeleteApplicant(int id)
     {
+        if (ApiClient.Client == null)
+        {
+            Response.Redirect("/Home/Enter");
+            return;
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            Response.Redirect("/Home/Applicants");
+            return;
+        }
         _applicantService.DeleteApplicant(id);
         Response.Redirect("/Home/Applicants");
     }
     
-        [HttpGet]
+    [HttpGet]
     public IActionResult Subjects()
     {
+        if (ApiClient.Client == null)
+        {
+            return Redirect("~/Home/Enter");
+        }
         return View(_subjectService.GetAllSubjects());
     }
     
     [HttpGet]
     public IActionResult SubjectCreate()
     {
+        if (ApiClient.Client == null)
+        {
+            return Redirect("~/Home/Enter");
+        }
         return View();
     }
     [HttpPost]
     public IActionResult SubjectCreate(string name, string maxPointsStr)
     {
+        if (ApiClient.Client == null)
+        {
+            return RedirectToAction("Enter");
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            return RedirectToAction("Subjects");
+        }
         if (string.IsNullOrEmpty(name))
         {
             TempData["ErrorMessage"] = "Введите название";
@@ -280,11 +659,24 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult SubjectSetting(int id)
     {
+        if (ApiClient.Client == null)
+        {
+            return Redirect("~/Home/Enter");
+        }
         return View(_subjectService.GetSubjectById(id));
     }
     [HttpPost]
     public IActionResult UpdateSubject(int id, string name, string maxPointsStr)
     {
+        if (ApiClient.Client == null)
+        {
+            return RedirectToAction("Enter");
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            return RedirectToAction("Subjects");
+        }
         if (string.IsNullOrEmpty(name))
         {
             TempData["ErrorMessage"] = "Введите название";
@@ -301,6 +693,17 @@ public class HomeController : Controller
 
     public void DeleteSubject(int id)
     {
+        if (ApiClient.Client == null)
+        {
+            Response.Redirect("/Home/Enter");
+            return;
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            Response.Redirect("/Home/Subjects");
+            return;
+        }
         _subjectService.DeleteSubject(id);
         Response.Redirect("/Home/Subjects");
     }
@@ -308,7 +711,33 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult Users()
     {
+        if (ApiClient.Client == null)
+        {
+            return Redirect("~/Home/Enter");
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Эта страница доступна только админам";
+            return Redirect("~/Home/Index");
+        }
         return View(_userService.GetAllUsers());
+    }
+    
+    public void PromoteUser(int id)
+    {
+        if (ApiClient.Client == null)
+        {
+            Response.Redirect("/Home/Enter");
+            return;
+        }
+        if (!ApiClient.Client.IsAdmin)
+        {
+            TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
+            Response.Redirect("/Home/Users");
+            return;
+        }
+        _userService.PromoteUser(id);
+        Response.Redirect("/Home/Users");
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
