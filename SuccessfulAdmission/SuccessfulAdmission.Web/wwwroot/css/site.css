@@ -30,6 +30,24 @@ body {
   .btn-danger:hover {
     background-color: #c82333;
   }
+  .btn-primary {
+    background-color: #007bff; /* Основной цвет */
+  }
+  .btn-primary:hover {
+    background-color: #0056b3; /* Цвет при наведении */
+  }
+  .btn-success {
+    background-color: #28a745;
+  }
+  .btn-success:hover {
+    background-color: #218838;
+  }
+  .btn-warning {
+    background-color: #ffc107;
+  }
+  .btn-warning:hover {
+    background-color: #e0a800;
+  }
 }
 
 .table th, .table td {
@@ -55,4 +73,28 @@ body {
 
 .btn-danger:hover {
   background-color: #c82333;
+}
+
+.btn-primary {
+  background-color: #007bff; /* Основной цвет */
+}
+
+.btn-primary:hover {
+  background-color: #0056b3; /* Цвет при наведении */
+}
+
+.btn-success {
+  background-color: #28a745;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+}
+
+.btn-warning {
+  background-color: #ffc107;
+}
+
+.btn-warning:hover {
+  background-color: #e0a800;
 }

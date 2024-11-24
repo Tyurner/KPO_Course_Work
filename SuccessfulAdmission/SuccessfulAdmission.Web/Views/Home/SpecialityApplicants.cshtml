@@ -1,13 +1,8 @@
-﻿@using SuccessfulAdmission.DataLogic.Models
-@model SuccessfulAdmission.DataLogic.Models.SpecialityModel
-@{
-    var applicants = ViewBag.Applicants as List<ApplicantModel>;
-    var subjects = ViewBag.Subjects as List<SubjectModel>;
-}
+﻿@model SuccessfulAdmission.DataLogic.Models.ListApplicantsModel
 
 <div class="text-center">
-    <h3>Список абитуриентов на специальность "@Model.Name"</h3>
-    <p>Количество мест @Model.CountOfPlaces</p>
+    <h3>Список абитуриентов на специальность "@Model.Speciality.Name"</h3>
+    <p>Количество мест @Model.Speciality.CountOfPlaces</p>
 </div>
 @if (!string.IsNullOrEmpty(TempData["ErrorMessage"] as string))
 {
@@ -19,9 +14,18 @@
     <label class="col-3">Добавить абитуриента: </label>
     <form action="@Url.Action("AddSpecialityApplicant", "Home")" method="post" class="col-6 d-flex">
         <select id="applicantId" name="applicantId" class="form-select me-2" asp-items="@(new SelectList(@ViewBag.AllApplicants,"Id", "Name"))"></select>
-        <input type="hidden" id="specialityId" name="specialityId" value="@Model.Id" />
+        <input type="hidden" id="specialityId" name="specialityId" value="@Model.SpecialityId" />
         <input type="submit" class="btn btn-primary" value="Добавить" />
     </form>
+</div>
+<div class="text-center mb-2">
+    <button id="passButton" class="btn btn-success me-2" onclick="showPassingApplicants()">Проходят</button>
+    <button id="failButton" class="btn btn-danger me-2" onclick="showFailingApplicants()">Не проходят</button>
+    <button id="allButton" class="btn btn-secondary" onclick="showAllApplicants()">Все</button>
+</div>
+<div class="text-center mb-2">
+    <input type="text" id="searchInput" class="form-control d-inline-block" style="width: 50%;" placeholder="Поиск по ФИО" />
+    <button class="btn btn-primary" onclick="searchApplicants()">Найти</button>
 </div>
 <div class="text-center">
     <table id="applicantsTable" class="table">
@@ -30,7 +34,7 @@
             <th>
                 ФИО абитуриента
             </th>
-            @foreach (var subject in subjects)
+            @foreach (var subject in Model.Subjects)
             {
                 <th>
                     @subject.Name
@@ -44,27 +48,103 @@
         </tr>
         </thead>
         <tbody>
-        @foreach (var applicant in applicants)
+        @foreach (var applicant in Model.Applicants)
         {
-            <tr>
+            var isPassing = Model.Applicants.Take(Model.Speciality.CountOfPlaces)
+                .Any(a => a.Key.Id == applicant.Key.Id);
+            <tr data-pass="@isPassing">
                 <td>
-                    @applicant.Name
+                    @applicant.Key.Name
                 </td>
-                @{ int totalScore = 0; }
-                @foreach (var subject in subjects)
+                @foreach (var subject in Model.Subjects)
                 {
-                    int score = applicant.Results.TryGetValue(subject, out var value) ? value : 0;
                     <td>
-                        @score
+                        @(applicant.Key.Results.TryGetValue(subject, out var value) ? value : 0)
                     </td>
-                    totalScore += score;
                 }
-                <td>@totalScore</td>
+                <td>@applicant.Value</td>
                 <td>
-                    <input type="button" class="btn btn-danger" value="Удалить" onclick="location.href='@Url.Action("DeleteSpecialityApplicant","Home", new {specialityId=Model.Id, applicantId=@applicant.Id})'" />
+                    <input type="button" class="btn btn-danger" value="Удалить" onclick="location.href='@Url.Action("DeleteSpecialityApplicant","Home", new {specialityId=Model.SpecialityId, applicantId=@applicant.Key.Id})'" />
                 </td>
             </tr>
         }
         </tbody>
     </table>
 </div>
+
+
+<script>
+    // Функция для отображения только проходящих абитуриентов
+    function showPassingApplicants() {
+        let allRows = document.querySelectorAll("#applicantsTable tbody tr");
+        let countOfPlaces = @Model.Speciality.CountOfPlaces;
+
+        // Показываем первые `CountOfPlaces` строк
+        let index = 0;
+        allRows.forEach(row => {
+            if (index < countOfPlaces) {
+                row.style.display = ""; // Показываем
+            } else {
+                row.style.display = "none"; // Скрываем
+            }
+            index++;
+        });
+
+        // Меняем стиль кнопок
+        document.getElementById("passButton").classList.add("active");
+        document.getElementById("failButton").classList.remove("active");
+    }
+
+    // Функция для отображения только не проходящих абитуриентов
+    function showFailingApplicants() {
+        let allRows = document.querySelectorAll("#applicantsTable tbody tr");
+
+        // Показываем только те строки, которые не входят в первые `CountOfPlaces`
+        let countOfPlaces = @Model.Speciality.CountOfPlaces;
+        let index = 0;
+        allRows.forEach(row => {
+            if (index >= countOfPlaces) {
+                row.style.display = ""; // Показываем
+            } else {
+                row.style.display = "none"; // Скрываем
+            }
+            index++;
+        });
+
+        // Меняем стиль кнопок
+        document.getElementById("failButton").classList.add("active");
+        document.getElementById("passButton").classList.remove("active");
+    }
+
+    // Функция для отображения всех абитуриентов
+    function showAllApplicants() {
+        let allRows = document.querySelectorAll("#applicantsTable tbody tr");
+        allRows.forEach(row => {
+            row.style.display = ""; // Показываем все строки
+        });
+
+        // Меняем стиль кнопок
+        document.getElementById("passButton").classList.remove("active");
+        document.getElementById("failButton").classList.remove("active");
+    }
+
+    // Функция поиска абитуриентов по ФИО
+    function searchApplicants() {
+        let searchQuery = document.getElementById("searchInput").value.toLowerCase(); // Получаем текст поиска и приводим к нижнему регистру
+        let allRows = document.querySelectorAll("#applicantsTable tbody tr");
+
+        allRows.forEach(row => {
+            let applicantName = row.querySelector("td").textContent.toLowerCase(); // Получаем ФИО абитуриента и приводим к нижнему регистру
+            if (applicantName.includes(searchQuery)) {
+                row.style.display = ""; // Показываем строку
+            } else {
+                row.style.display = "none"; // Скрываем строку
+            }
+        });
+    }
+
+    // Инициализация - по умолчанию показываем все абитуриенты
+    document.addEventListener("DOMContentLoaded", function () {
+        showAllApplicants(); // По умолчанию показываем все строки
+    });
+</script>
