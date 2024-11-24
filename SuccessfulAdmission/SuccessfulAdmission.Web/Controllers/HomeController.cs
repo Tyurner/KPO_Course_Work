@@ -14,6 +14,7 @@ public class HomeController : Controller
     private readonly ApplicantService _applicantService = new ApplicantService();
     private readonly SubjectService _subjectService = new SubjectService();
     private readonly UserService _userService = new UserService();
+    private readonly ListApplicantsService _listService = new ListApplicantsService();
 
     public HomeController(ILogger<HomeController> logger)
     {
@@ -416,9 +417,7 @@ public class HomeController : Controller
             return Redirect("~/Home/Enter");
         }
         ViewBag.AllApplicants = _applicantService.GetAllApplicants();
-        ViewBag.Applicants = _applicantService.GetApplicantsBySpecialityId(id);
-        ViewBag.Subjects = _subjectService.GetSubjectsBySpecialityId(id);
-        return View(_specialityService.GetSpecialityById(id));
+        return View(_listService.GetListApplicantsForSpeciality(id));
     }
     
     [HttpPost]
@@ -431,10 +430,10 @@ public class HomeController : Controller
         if (!ApiClient.Client.IsAdmin)
         {
             TempData["ErrorMessage"] = "Недостаточно прав для данного действия";
-            return RedirectToAction("SpecialityApplicants", new { id = specialityId });
+            return RedirectToAction("SpecialityApplicants", new {id = specialityId});
         }
         _specialityService.AddSpecialityApplicant(specialityId, applicantId);
-        return RedirectToAction("SpecialityApplicants", new { id = specialityId });
+        return RedirectToAction("SpecialityApplicants", new {id = specialityId});
     }
     
     public void DeleteSpecialityApplicant(int specialityId, int applicantId)

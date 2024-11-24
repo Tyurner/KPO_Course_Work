@@ -13,10 +13,14 @@
     <p>
         <a asp-action="FacultyCreate">Добавить факультет</a>
     </p>
-    <table class="table">
+    <div class="text-center mb-2">
+        <input type="text" id="searchInput" class="form-control d-inline-block" style="width: 50%;" placeholder="Поиск по названию" />
+        <button class="btn btn-primary" onclick="searchFaculties()">Найти</button>
+    </div>
+    <table id="facultyTable" class="table">
         <thead>
         <tr>
-            <th>
+            <th class="text-info" onclick="sortTable(0)">
                 Название факультета
             </th>
             <th>
@@ -39,3 +43,39 @@
         </tbody>
     </table>
 </div>
+
+<script>
+function sortTable(columnIndex) {
+    const table = document.getElementById("facultyTable");
+    const rows = Array.from(table.rows).slice(1); // Извлекаем строки, пропуская заголовок
+    const isAscending = table.dataset.sortOrder === "asc";
+    // Сортируем строки
+    rows.sort((a, b) => {
+        const aText = a.cells[columnIndex].innerText;
+        const bText = b.cells[columnIndex].innerText;
+        return isAscending ? (aText > bText ? 1 : -1) : (aText < bText ? 1 : -1);
+    });
+    // Убираем текущие строки из таблицы
+    rows.forEach(row => table.appendChild(row)); // Перемещаем строки, чтобы обновить порядок
+    // Переключаем порядок сортировки
+    table.dataset.sortOrder = isAscending ? "desc" : "asc";
+    // Принудительная перерисовка стилей
+    rows.forEach(row => row.classList.remove('sorted')); // Если есть класс для сортировки, убираем его
+    rows.forEach((row, index) => {
+        row.classList.add(index % 2 === 0 ? 'sorted-even' : 'sorted-odd'); // Применяем классы для четных и нечетных строк
+    });
+}
+function searchFaculties() {
+    let searchQuery = document.getElementById("searchInput").value.toLowerCase();
+    let allRows = document.querySelectorAll("#facultyTable tbody tr");
+
+    allRows.forEach(row => {
+        let name = row.querySelector("td").textContent.toLowerCase();
+        if (name.includes(searchQuery)) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+    });
+}
+</script>
