@@ -1,4 +1,5 @@
 ﻿using System.Data.SqlClient;
+using Google.Authenticator;
 using SuccessfulAdmission.DataLogic.Models;
 
 namespace SuccessfulAdmission.DataLogic.Services;
@@ -6,6 +7,7 @@ namespace SuccessfulAdmission.DataLogic.Services;
 public class UserService
 {
     private string _connectionString = new ConnectionStringReader().GetConnectionString();
+    private static readonly TwoFactorAuthenticator TwoFactorAuthenticator = new TwoFactorAuthenticator();
 
     public List<UserModel> GetAllUsers()
     {
@@ -231,6 +233,65 @@ public class UserService
                 command.Parameters.AddWithValue("@IsAdmin", true);
                 command.ExecuteNonQuery();
             }
+        }
+    }
+    
+    public bool CheckCodeValid(string key, string code) => TwoFactorAuthenticator.ValidateTwoFactorPIN(key, code, true);
+    
+    public (string, string) RegisterUser(string issuer, string username, string secretKey = null)
+    {
+        // Если секретный ключ не предоставлен, сгенерируем новый.
+        if (string.IsNullOrWhiteSpace(secretKey))
+        {
+            secretKey = GenerateSecretKey();
+        }
+
+        // Генерация кода настройки и QR-кода.
+        var setupCode = TwoFactorAuthenticator.GenerateSetupCode(
+            issuer: issuer,
+            accountTitleNoSpaces: username,
+            accountSecretKey: secretKey,
+            secretIsBase32: true, // Учитываем, что секретный ключ будет в Base32 формате.
+            qrPixelsPerModule: 3);
+
+        // Возвращаем URL для QR-кода и секретный ключ.
+        return (secretKey, setupCode.QrCodeSetupImageUrl);
+    }
+    
+    private string GenerateSecretKey()
+    {
+        // Длина секретного ключа для двухфакторной аутентификации (обычно 16 байт).
+        var key = new byte[16];
+        using (var rng = new System.Security.Cryptography.RNGCryptoServiceProvider())
+        {
+            rng.GetBytes(key);
+        }
+
+        return Base32Encoding.ToString(key);
+    }
+
+    public void UpdateTwoFactorSetting(int id, bool enableTwoFactor)
+    {
+        using (var connection = new SqlConnection(_connectionString))
+        {
+            var command = new SqlCommand("UPDATE [dbo].[User] SET IsTwoFactor = @IsTwoFactor WHERE Id = @Id", connection);
+            command.Parameters.AddWithValue("@IsTwoFactor", enableTwoFactor);
+            command.Parameters.AddWithValue("@Id", id);
+            connection.Open();
+            command.ExecuteNonQuery();
+        }
+    }
+    
+    public void UpdateTwoFactorKeys(int id, string key, string qr)
+    {
+        using (var connection = new SqlConnection(_connectionString))
+        {
+            var command = new SqlCommand("UPDATE [dbo].[User] SET [Key] = @Key, Qr = @Qr WHERE Id = @Id", connection);
+            command.Parameters.AddWithValue("@Key", key);
+            command.Parameters.AddWithValue("@Qr", qr);
+            command.Parameters.AddWithValue("@Id", id);
+            connection.Open();
+            command.ExecuteNonQuery();
         }
     }
 }

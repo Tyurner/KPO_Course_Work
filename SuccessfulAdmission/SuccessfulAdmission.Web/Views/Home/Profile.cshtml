@@ -7,7 +7,7 @@
     alert('@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(TempData["ErrorMessage"].ToString()))');
 </script>
 }
-<form method="post" action="@Url.Action("UpdateUser", "Home", new{id=Model.Id,login="#login",password="#password",email="#email"})">
+<form method="post" action="@Url.Action("UpdateUser", "Home", new{id=Model.Id,login="#login",password="#password",email="#email",isTwoFactor="#isTwoFactor"})">
     <div class="row m-3">
         <div class="col-4">Почта:</div>
         <div class="col-8"><input type="text" name="email" id="email" value="@Model.Email" /></div>
@@ -20,6 +20,27 @@
         <div class="col-4">Пароль:</div>
         <div class="col-8"><input type="password" name="password" id="password" value="@Model.Password" /></div>
     </div>
+    @if (!string.IsNullOrEmpty(Model.Key) && !string.IsNullOrEmpty(Model.Qr))
+    {
+        <div class="row m-3">
+            <div class="col-4">Включить двухфакторную аутентификацию</div>
+            <div class="col-8"><input type="checkbox" name="isTwoFactor" id="isTwoFactor" value="true" @(Model.IsTwoFactor ? "checked" : "") style="transform: scale(2); margin: 10px;" /></div>
+        </div>
+        <div class="row m-3">
+            <div class="col-4">Секретный ключ:</div>
+            <div class="col-8">@Model.Key</div>
+        </div>
+        <div class="row m-3">
+            <div class="col-4">QR:</div>
+            <div class="col-8"><img src="@Model.Qr" alt="QR-код для двухфакторной аутентификации" /></div>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex flex-column m-3 col-md-4 col-xs-12">
+            <input type="button" class="btn btn-success" value="Сгенерировать ключ" onclick="location.href='@Url.Action("GenerateSecretKey", "Home", new { id = Model.Id, login = Model.Login })'"/>
+        </div>
+    }
     <div class="d-flex flex-column m-3 col-md-4 col-xs-12">
         <input type="button" class="mb-2 btn btn-secondary" value="Выйти" onclick="location.href='@Url.Action("Exit", "Home")'"/>
         <input type="submit" value="Обновить данные" class="mb-2 btn btn-primary"/>

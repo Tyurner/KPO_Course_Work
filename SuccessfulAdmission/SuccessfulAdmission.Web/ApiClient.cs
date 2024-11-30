@@ -6,6 +6,8 @@ public class ApiClient
 {
     public static UserModel? Client { get; set; } = null;
     
+    public static bool ValidCode = false;
+    
     public int Id = Client?.Id ?? 0;
 
     public string Login = Client?.Login ?? string.Empty;
