@@ -23,7 +23,7 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return Redirect("~/Home/Enter");
         }
@@ -50,7 +50,43 @@ public class HomeController : Controller
             TempData["ErrorMessage"] = "Неверный логин/пароль";
             return View();
         }
+        return ApiClient.Client.IsTwoFactor ? RedirectToAction("Enter2") : RedirectToAction("Index");
+    }
+    
+    [HttpGet]
+    public IActionResult Enter2()
+    {
+        if (ApiClient.Client == null || !ApiClient.Client.IsTwoFactor)
+        {
+            return Redirect("~/Home/Enter");
+        }
+        return View();
+    }
+    
+    [HttpPost]
+    public IActionResult Enter2(string code)
+    {
+        if (string.IsNullOrEmpty(code))
+        {
+            TempData["ErrorMessage"] = "Введите код";
+            return View();
+        }
+
+        ApiClient.ValidCode = _userService.CheckCodeValid(ApiClient.Client.Key, code);
+        if (!ApiClient.ValidCode)
+        {
+            TempData["ErrorMessage"] = "Неверный код";
+            return View();
+        }
         return RedirectToAction("Index");
+    }
+    
+    public void GenerateSecretKey(int id, string login)
+    {
+        var codes = _userService.RegisterUser("SuccessfulAdmission", login);
+        _userService.UpdateTwoFactorKeys(id, codes.Item1, codes.Item2);
+        ApiClient.Client = _userService.GetUserById(id);
+        Response.Redirect("/Home/Profile");
     }
     
     public void Exit()
@@ -107,7 +143,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult Profile()
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return Redirect("~/Home/Enter");
         }
@@ -127,9 +163,9 @@ public class HomeController : Controller
     }
     
     [HttpPost]
-    public IActionResult UpdateUser(int id, string login, string password, string email)
+    public IActionResult UpdateUser(int id, string login, string password, string email, bool isTwoFactor=false)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return RedirectToAction("Enter");
         }
@@ -138,12 +174,12 @@ public class HomeController : Controller
             TempData["ErrorMessage"] = "Введите почту, логин, пароль";
             return RedirectToAction("Profile");
         }
-        if (_userService.GetUserByLogin(login) != null)
+        if (_userService.GetUserByLogin(login) != null && _userService.GetUserByLogin(login)!.Id != id)
         {
             TempData["ErrorMessage"] = "Пользователь с таким логином уже существует";
             return RedirectToAction("Profile");
         }
-        if (_userService.GetUserByEmail(email) != null)
+        if (_userService.GetUserByEmail(email) != null && _userService.GetUserByEmail(email)!.Id != id)
         {
             TempData["ErrorMessage"] = "Пользователь с такой почтой уже существует";
             return RedirectToAction("Profile");
@@ -166,6 +202,7 @@ public class HomeController : Controller
             return RedirectToAction("Profile");
         }
         _userService.UpdateUser(id, login, password, email);
+        _userService.UpdateTwoFactorSetting(id, isTwoFactor);
         ApiClient.Client = _userService.GetUserById(id);
         var model = new ApiClient
         {
@@ -183,7 +220,7 @@ public class HomeController : Controller
     
     public void DeleteUser(int id)
     {
-        if (ApiClient.Client == null || id <= 0)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode) || id <= 0)
         {
             Response.Redirect("/Home/Enter");
             return;
@@ -195,7 +232,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult Faculties()
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return Redirect("~/Home/Enter");
         }
@@ -205,7 +242,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult FacultyCreate()
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return Redirect("~/Home/Enter");
         }
@@ -214,7 +251,7 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult FacultyCreate(string name, string? desc)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return RedirectToAction("Enter");
         }
@@ -235,7 +272,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult FacultySetting(int id)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return Redirect("~/Home/Enter");
         }
@@ -244,7 +281,7 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult UpdateFaculty(int id, string name, string? desc)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return RedirectToAction("Enter");
         }
@@ -264,7 +301,7 @@ public class HomeController : Controller
 
     public void DeleteFaculty(int id)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             Response.Redirect("/Home/Enter");
             return;
@@ -282,7 +319,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult Specialities()
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return Redirect("~/Home/Enter");
         }
@@ -292,7 +329,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult SpecialityCreate()
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return Redirect("~/Home/Enter");
         }
@@ -302,7 +339,7 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult SpecialityCreate(string name, string? desc, string countStr, int? facultyId)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return RedirectToAction("Enter");
         }
@@ -331,7 +368,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult SpecialitySetting(int id)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return Redirect("~/Home/Enter");
         }
@@ -341,7 +378,7 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult UpdateSpeciality(int id, string name, string? desc, string countStr, int? facultyId)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return RedirectToAction("Enter");
         }
@@ -367,7 +404,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult SpecialitySubjects(int id)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return Redirect("~/Home/Enter");
         }
@@ -379,7 +416,7 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult AddSpecialitySubject(int specialityId, int subjectId)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return RedirectToAction("Enter");
         }
@@ -394,7 +431,7 @@ public class HomeController : Controller
 
     public void DeleteSpecialitySubject(int specialityId, int subjectId)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             Response.Redirect("/Home/Enter");
             return;
@@ -412,7 +449,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult SpecialityApplicants(int id)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return Redirect("~/Home/Enter");
         }
@@ -423,7 +460,7 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult AddSpecialityApplicant(int specialityId, int applicantId)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return RedirectToAction("Enter");
         }
@@ -438,7 +475,7 @@ public class HomeController : Controller
     
     public void DeleteSpecialityApplicant(int specialityId, int applicantId)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             Response.Redirect("/Home/Enter");
             return;
@@ -455,7 +492,7 @@ public class HomeController : Controller
 
     public void DeleteSpeciality(int id)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             Response.Redirect("/Home/Enter");
             return;
@@ -473,7 +510,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult Applicants()
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return Redirect("~/Home/Enter");
         }
@@ -483,7 +520,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult ApplicantCreate()
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return Redirect("~/Home/Enter");
         }
@@ -492,7 +529,7 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult ApplicantCreate(string name)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return RedirectToAction("Enter");
         }
@@ -514,7 +551,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult ApplicantSetting(int id)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return Redirect("~/Home/Enter");
         }
@@ -523,7 +560,7 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult UpdateApplicant(int id, string name)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return RedirectToAction("Enter");
         }
@@ -544,7 +581,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult ApplicantSubjects(int id)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return Redirect("~/Home/Enter");
         }
@@ -555,7 +592,7 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult AddApplicantSubject(int applicantId, int subjectId, int points)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return RedirectToAction("Enter");
         }
@@ -576,7 +613,7 @@ public class HomeController : Controller
     
     public void DeleteApplicantSubject(int applicantId, int subjectId)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             Response.Redirect("/Home/Enter");
             return;
@@ -593,7 +630,7 @@ public class HomeController : Controller
 
     public void DeleteApplicant(int id)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             Response.Redirect("/Home/Enter");
             return;
@@ -611,7 +648,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult Subjects()
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return Redirect("~/Home/Enter");
         }
@@ -621,7 +658,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult SubjectCreate()
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return Redirect("~/Home/Enter");
         }
@@ -630,7 +667,7 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult SubjectCreate(string name, string maxPointsStr)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return RedirectToAction("Enter");
         }
@@ -658,7 +695,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult SubjectSetting(int id)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return Redirect("~/Home/Enter");
         }
@@ -667,7 +704,7 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult UpdateSubject(int id, string name, string maxPointsStr)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return RedirectToAction("Enter");
         }
@@ -692,7 +729,7 @@ public class HomeController : Controller
 
     public void DeleteSubject(int id)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             Response.Redirect("/Home/Enter");
             return;
@@ -710,7 +747,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult Users()
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             return Redirect("~/Home/Enter");
         }
@@ -724,7 +761,7 @@ public class HomeController : Controller
     
     public void PromoteUser(int id)
     {
-        if (ApiClient.Client == null)
+        if (ApiClient.Client == null || (ApiClient.Client.IsTwoFactor && !ApiClient.ValidCode))
         {
             Response.Redirect("/Home/Enter");
             return;
