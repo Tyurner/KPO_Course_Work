@@ -50,7 +50,9 @@ public class HomeController : Controller
             TempData["ErrorMessage"] = "Неверный логин/пароль";
             return View();
         }
-        return ApiClient.Client.IsTwoFactor ? RedirectToAction("Enter2") : RedirectToAction("Index");
+        if (ApiClient.Client.IsTwoFactor) return RedirectToAction("Enter2");
+        ApiClient.ValidCode = true;
+        return RedirectToAction("Index");
     }
     
     [HttpGet]
@@ -92,6 +94,7 @@ public class HomeController : Controller
     public void Exit()
     {
         ApiClient.Client = null;
+        ApiClient.ValidCode = false;
         Response.Redirect("/Home/Enter");
     }
     
