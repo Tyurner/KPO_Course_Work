@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SuccessfulAdmission.Web", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SuccessfulAdmission.DataLogic", "SuccessfulAdmission.DataLogic\SuccessfulAdmission.DataLogic.csproj", "{5928D3EF-4A2D-4284-8629-CCECD63ECF47}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SuccessfulAdmission.Test", "SuccessfulAdmission.Test\SuccessfulAdmission.Test.csproj", "{C579BFBA-998A-4D4E-A712-7D1C61F93A2B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{5928D3EF-4A2D-4284-8629-CCECD63ECF47}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5928D3EF-4A2D-4284-8629-CCECD63ECF47}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5928D3EF-4A2D-4284-8629-CCECD63ECF47}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C579BFBA-998A-4D4E-A712-7D1C61F93A2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C579BFBA-998A-4D4E-A712-7D1C61F93A2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C579BFBA-998A-4D4E-A712-7D1C61F93A2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C579BFBA-998A-4D4E-A712-7D1C61F93A2B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
